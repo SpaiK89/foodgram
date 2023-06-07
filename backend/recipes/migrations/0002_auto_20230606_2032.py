@@ -17,9 +17,14 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Ingredient',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(db_index=True, max_length=150, verbose_name='Название ингредиента')),
-                ('measurement_unit', models.CharField(max_length=150, verbose_name='Единицы измерения')),
+                ('id', models.BigAutoField(
+                    auto_created=True, primary_key=True, serialize=False,
+                    verbose_name='ID')),
+                ('name', models.CharField(
+                    db_index=True, max_length=150,
+                    verbose_name='Название ингредиента')),
+                ('measurement_unit', models.CharField(
+                    max_length=150, verbose_name='Единицы измерения')),
             ],
             options={
                 'verbose_name': 'Ингредиент',
@@ -30,9 +35,21 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='QuantityIngredient',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('quantity', models.IntegerField(default=1, validators=[django.core.validators.MinValueValidator(1, 'Минимальное количество ингридеентов - 1')], verbose_name='Количество')),
-                ('ingredient', models.ForeignKey(help_text='Выберите ингредиенты', on_delete=django.db.models.deletion.CASCADE, related_name='quantity_ingredients', to='recipes.ingredient', verbose_name='Ингридиент')),
+                ('id', models.BigAutoField(
+                    auto_created=True, primary_key=True, serialize=False,
+                    verbose_name='ID')),
+                ('quantity', models.IntegerField(
+                    default=1,
+                    validators=[
+                        django.core.validators.MinValueValidator(
+                            1,
+                            'Минимальное количество ингридеентов - 1')],
+                    verbose_name='Количество')),
+                ('ingredient', models.ForeignKey(
+                    help_text='Выберите ингредиенты',
+                    on_delete=django.db.models.deletion.CASCADE,
+                    related_name='quantity_ingredients',
+                    to='recipes.ingredient', verbose_name='Ингридиент')),
             ],
             options={
                 'verbose_name': 'Ингредиент',
@@ -43,20 +60,43 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='tag',
             name='color',
-            field=models.CharField(help_text='Цветовой HEX-код например, #49B64E', max_length=7, unique=True, verbose_name='Color (HEX code)'),
+            field=models.CharField(
+                help_text='Цветовой HEX-код например, #49B64E',
+                max_length=7, unique=True, verbose_name='Color (HEX code)'),
         ),
         migrations.CreateModel(
             name='Recipe',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(db_index=True, help_text='Название рецепта', max_length=100, verbose_name='Название рецепта')),
-                ('image', models.ImageField(blank=True, help_text='Фото блюда', upload_to='recipes/images/', verbose_name='Фото')),
-                ('text', models.TextField(help_text='Описание рецепта', verbose_name='Описание')),
-                ('cooking_time', models.PositiveSmallIntegerField(help_text='Время приготовления в минутах', validators=[django.core.validators.MinValueValidator(1, 'Минимальное время приготовления - 1 минута')], verbose_name='Время приготовления')),
-                ('pub_date', models.DateTimeField(auto_now_add=True, verbose_name='Дата публикации')),
-                ('author', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='recipes', to=settings.AUTH_USER_MODEL, verbose_name='Автор')),
-                ('ingredients', models.ManyToManyField(help_text='Выберите ингредиенты', related_name='recipes', through='recipes.QuantityIngredient', to='recipes.Ingredient', verbose_name='Список ингредиентов')),
-                ('tags', models.ManyToManyField(help_text='Выберите тег', related_name='recipes', to='recipes.Tag', verbose_name='Тег')),
+                ('id', models.BigAutoField(
+                    auto_created=True, primary_key=True, serialize=False,
+                    verbose_name='ID')),
+                ('name', models.CharField(
+                    db_index=True, help_text='Название рецепта',
+                    max_length=100, verbose_name='Название рецепта')),
+                ('image', models.ImageField(
+                    blank=True, help_text='Фото блюда',
+                    upload_to='recipes/images/', verbose_name='Фото')),
+                ('text', models.TextField(
+                    help_text='Описание рецепта', verbose_name='Описание')),
+                ('cooking_time', models.PositiveSmallIntegerField(
+                    help_text='Время приготовления в минутах',
+                    validators=[django.core.validators.MinValueValidator(
+                        1, 'Минимальное время приготовления - 1 минута')],
+                    verbose_name='Время приготовления')),
+                ('pub_date', models.DateTimeField(
+                    auto_now_add=True, verbose_name='Дата публикации')),
+                ('author', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE,
+                    related_name='recipes',
+                    to=settings.AUTH_USER_MODEL, verbose_name='Автор')),
+                ('ingredients', models.ManyToManyField(
+                    help_text='Выберите ингредиенты', related_name='recipes',
+                    through='recipes.QuantityIngredient',
+                    to='recipes.Ingredient',
+                    verbose_name='Список ингредиентов')),
+                ('tags', models.ManyToManyField(
+                    help_text='Выберите тег', related_name='recipes',
+                    to='recipes.Tag', verbose_name='Тег')),
             ],
             options={
                 'verbose_name': 'Рецепт',
@@ -67,14 +107,21 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='quantityingredient',
             name='recipe',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='quantity_ingredients', to='recipes.recipe', verbose_name='Рецепт'),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name='quantity_ingredients',
+                to='recipes.recipe', verbose_name='Рецепт'),
         ),
         migrations.AddConstraint(
             model_name='ingredient',
-            constraint=models.UniqueConstraint(fields=('name', 'measurement_unit'), name='unique_ingredient'),
+            constraint=models.UniqueConstraint(
+                fields=('name', 'measurement_unit'),
+                name='unique_ingredient'),
         ),
         migrations.AddConstraint(
             model_name='quantityingredient',
-            constraint=models.UniqueConstraint(fields=('ingredient', 'recipe'), name='unique_ingredients_recipe'),
+            constraint=models.UniqueConstraint(
+                fields=('ingredient', 'recipe'),
+                name='unique_ingredients_recipe'),
         ),
     ]

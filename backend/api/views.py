@@ -1,13 +1,21 @@
 from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status, viewsets
-
 from .filters import IngredientSearchFilter, RecipeFilterSet
-from .serializers import *
+from .serializers import (
+                        SetPasswordSerializer,
+                        CustomUserSerializer,
+                        CustomUserCreateSerializer,
+                        FollowSerializer,
+                        IngredientSerializer,
+                        TagSerializer,
+                        RecipeSerializer,
+                        FavoritesSerializer)
 from users.models import Follow, User
 from .permissions import IsAuthorOrAdminOrReadOnly, IsAdminOrReadOnly
 from recipes.models import (Tag, Ingredient, Recipe, QuantityIngredient,
@@ -25,7 +33,6 @@ class UsersViewSet(UserViewSet):
         ):
             return CustomUserSerializer
         return CustomUserCreateSerializer
-
 
     def __get_add_delete_follow(self, request, id):
         """Создаёт/удаляет связь между пользователями."""
@@ -117,14 +124,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filterset_class = RecipeFilterSet
     serializer_class = RecipeSerializer
 
-    def get_queryset(self):
-        user_id = self.request.user.pk
-        return Recipe.objects.select_related(
-            'author'
-        ).prefetch_related(
-            'ingredients', 'tags'
-        )
-
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
@@ -189,5 +188,3 @@ class RecipeViewSet(viewsets.ModelViewSet):
         request = HttpResponse(cart_list, content_type='text/plain')
         request['Content-Disposition'] = f'attachment; filename={filename}'
         return request
-
-

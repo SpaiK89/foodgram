@@ -12,7 +12,8 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterModelOptions(
             name='user',
-            options={'ordering': ('id',), 'verbose_name': 'Пользователь', 'verbose_name_plural': 'Пользователи'},
+            options={'ordering': ('id',), 'verbose_name': 'Пользователь',
+                     'verbose_name_plural': 'Пользователи'},
         ),
         migrations.AlterField(
             model_name='user',
@@ -32,11 +33,18 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='user',
             name='role',
-            field=models.CharField(choices=[('guest', 'guest'), ('authorized', 'authorized'), ('admin', 'admin')], default='guest', max_length=10, verbose_name='Уровень доступа пользователей'),
+            field=models.CharField(
+                choices=[
+                    ('guest', 'guest'), ('authorized', 'authorized'),
+                    ('admin', 'admin')],
+                default='guest',
+                max_length=10,
+                verbose_name='Уровень доступа пользователей'),
         ),
         migrations.AlterField(
             model_name='user',
             name='username',
-            field=models.CharField(max_length=150, unique=True, verbose_name='Пользователь'),
+            field=models.CharField(
+                max_length=150, unique=True, verbose_name='Пользователь'),
         ),
     ]

@@ -11,9 +11,11 @@ class TagAdmin(admin.ModelAdmin):
     search_fields = ('name',)
     empty_value_display = VALUE_DISPLAY
 
+
 class IngredientInline(admin.TabularInline):
     model = QuantityIngredient
     extra = 1
+
 
 @admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
@@ -22,6 +24,7 @@ class IngredientAdmin(admin.ModelAdmin):
     search_fields = ('name', 'measurement_unit')
     list_filter = ('name',)
     empty_value_display = VALUE_DISPLAY
+
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
@@ -34,6 +37,7 @@ class RecipeAdmin(admin.ModelAdmin):
 
     def count_favorites(self, obj):
         return obj.favorites.count()
+
 
 @admin.register(Favorite)
 class FavoriteAdmin(admin.ModelAdmin):

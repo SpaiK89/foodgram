@@ -14,10 +14,19 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Tag',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(db_index=True, help_text='Введите название тега', max_length=50, unique=True)),
-                ('color', models.CharField(help_text='Цветовой HEX-код например, 49B64E', max_length=7, unique=True, verbose_name='Color (HEX code)')),
-                ('slug', models.SlugField(help_text='Адрес для странице в браузере', max_length=100, unique=True)),
+                ('id', models.BigAutoField(
+                    auto_created=True, primary_key=True,
+                    serialize=False, verbose_name='ID')),
+                ('name', models.CharField(
+                    db_index=True, help_text='Введите название тега',
+                    max_length=50, unique=True)),
+                ('color', models.CharField(
+                    help_text='Цветовой HEX-код например, 49B64E',
+                    max_length=7, unique=True,
+                    verbose_name='Color (HEX code)')),
+                ('slug', models.SlugField(
+                    help_text='Адрес для странице в браузере',
+                    max_length=100, unique=True)),
             ],
             options={
                 'verbose_name': 'Тег',

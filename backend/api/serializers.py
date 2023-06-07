@@ -5,11 +5,9 @@ from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-
-from recipes.models import (Ingredient, QuantityIngredient, Recipe,
-                            Tag, Favorite, Cart)
+from recipes.models import (Ingredient, QuantityIngredient, Recipe, Tag,
+                            Favorite, Cart)
 from users.models import User, Follow
-from recipes.models import Ingredient, QuantityIngredient, Recipe
 
 
 class CustomUserCreateSerializer(UserCreateSerializer):
@@ -20,7 +18,6 @@ class CustomUserCreateSerializer(UserCreateSerializer):
         },
         write_only=True,
     )
-
 
     class Meta:
         model = User
@@ -51,7 +48,6 @@ class CustomUserCreateSerializer(UserCreateSerializer):
 class CustomUserSerializer(UserSerializer):
     """Сериализатор пользователя."""
     is_subscribed = serializers.SerializerMethodField(read_only=True)
-
 
     class Meta:
         model = User
@@ -113,6 +109,7 @@ class FollowRecipeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
+
 
 class FollowSerializer(serializers.ModelSerializer):
     """Сериализатор для вывода авторов, на которых подписан пользователь."""
@@ -283,6 +280,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         self.create_ingredients(ingredients, instance)
         instance.save()
         return instance
+
 
 class FavoritesSerializer(serializers.ModelSerializer):
     """Сериализатор рецепта в подписках."""

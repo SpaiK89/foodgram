@@ -1,8 +1,7 @@
 from django_filters import FilterSet, filters
 from rest_framework.filters import SearchFilter
-
-from recipes.models import Ingredient, Recipe, Tag
 from users.models import User
+from recipes.models import Ingredient, Recipe, Tag
 
 
 class IngredientSearchFilter(SearchFilter):
@@ -11,6 +10,7 @@ class IngredientSearchFilter(SearchFilter):
     class Meta:
         model = Ingredient
         fields = ('name',)
+
 
 class RecipeFilterSet(FilterSet):
     tags = filters.ModelMultipleChoiceFilter(
