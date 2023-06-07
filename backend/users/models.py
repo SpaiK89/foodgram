@@ -21,7 +21,7 @@ class User(AbstractUser):
         blank=False,
         max_length=150,
         unique=True,
-        verbose_name='Username',
+        verbose_name='Пользователь',
     )
 
     email = models.EmailField(
@@ -33,56 +33,53 @@ class User(AbstractUser):
     first_name = models.CharField(
         blank=False,
         max_length=150,
-        verbose_name='First Name',
+        verbose_name='Имя',
     )
 
     last_name = models.CharField(
         blank=False,
         max_length=150,
-        verbose_name='Last Name',
+        verbose_name='Фамилия',
     )
 
     password = models.CharField(
         max_length=150,
-        verbose_name='Password',
+        verbose_name='Пароль',
     )
 
     role = models.CharField(
         default='guest',
         choices=USER_ROLES,
         max_length=10,
-        verbose_name='User Role',
+        verbose_name='Уровень доступа пользователей',
     )
 
     @property
     def is_guest(self):
-        """Checking for unauthorized user rights (guest)."""
+        """Проверка наличия прав неавторизованного пользователя (гостя)."""
         return self.role == self.GUEST
 
     @property
     def is_authorized(self):
-        """Checking for authorized user rights."""
+        """Проверка наличия прав авторизованного пользователя."""
         return self.role == self.AUTHORIZED
 
     @property
     def is_admin(self):
-        """Checking for administrator rights."""
+        """Проверка наличия прав администратора."""
         return self.role == self.ADMIN or self.is_superuser
 
     class Meta:
         ordering = ('id',)
-        verbose_name = 'User'
-        verbose_name_plural = 'Users'
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
 
     def __str__(self):
         return self.username
 
 
 class Follow(models.Model):
-    """
-    Подписка на авторов.
-    Пользователь (user) и автор рецепта (author) связаны с моделью User.
-    """
+    """Подписка на авторов."""
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
