@@ -1,16 +1,14 @@
 from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
-
-from .filters import IngredientSearchFilter, RecipeFilterSet
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework import status, viewsets
 
-from .pagination import CustomPagination
+from .filters import IngredientSearchFilter, RecipeFilterSet
 from .serializers import *
 from users.models import Follow, User
-from rest_framework import status, viewsets
 from .permissions import IsAuthorOrAdminOrReadOnly, IsAdminOrReadOnly
 from recipes.models import (Tag, Ingredient, Recipe, QuantityIngredient,
                             Favorite, Cart)
@@ -182,12 +180,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 else:
                     ingredients_set[name]['amount'] += amount
 
-        cart_list = ['{} - {} {}.\n'.format(
+        cart_list = [' {} - {} {}.\n '.format(
             name, ingredients_set[name]['amount'],
             ingredients_set[name]['measurement_unit'],
         ) for name in ingredients_set]
-        cart_list = 'Список покупок:\n\n' + '\n'.join(cart_list)
+        cart_list = 'Список покупок:\n\n ' + '\n'.join(cart_list)
         filename = 'shopping_cart.txt'
         request = HttpResponse(cart_list, content_type='text/plain')
         request['Content-Disposition'] = f'attachment; filename={filename}'
         return request
+
+

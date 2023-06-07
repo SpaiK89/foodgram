@@ -1,4 +1,5 @@
 from django.contrib import admin
+
 from foodgram.settings import VALUE_DISPLAY
 from .models import Tag, QuantityIngredient, Ingredient, Recipe, Favorite
 
@@ -19,7 +20,7 @@ class IngredientAdmin(admin.ModelAdmin):
     """Отображает ингредиенты в панели администратора."""
     list_display = ('name', 'measurement_unit')
     search_fields = ('name', 'measurement_unit')
-    list_filter = ('name', 'measurement_unit')
+    list_filter = ('name',)
     empty_value_display = VALUE_DISPLAY
 
 @admin.register(Recipe)

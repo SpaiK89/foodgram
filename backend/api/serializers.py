@@ -3,12 +3,12 @@ from django.core import exceptions
 from django.shortcuts import get_object_or_404
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
-from recipes.models import (Ingredient, QuantityIngredient, Recipe,
-                            Tag, Favorite, Cart)
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from users.models import User, Follow
 
+from recipes.models import (Ingredient, QuantityIngredient, Recipe,
+                            Tag, Favorite, Cart)
+from users.models import User, Follow
 from recipes.models import Ingredient, QuantityIngredient, Recipe
 
 
@@ -115,7 +115,7 @@ class FollowRecipeSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'image', 'cooking_time')
 
 class FollowSerializer(serializers.ModelSerializer):
-    """Сериализатор для вывода авторов на которых подписан пользователь."""
+    """Сериализатор для вывода авторов, на которых подписан пользователь."""
     id = serializers.ReadOnlyField(source='author.id')
     username = serializers.ReadOnlyField(source='author.username')
     first_name = serializers.ReadOnlyField(source='author.first_name')
