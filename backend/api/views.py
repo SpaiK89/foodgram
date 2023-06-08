@@ -110,7 +110,8 @@ class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
     """Работает с ингредиентами. Ингредиенты может создавать только админ"""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    filter_backends = (IngredientSearchFilter,)
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = IngredientSearchFilter
     permission_classes = (IsAdminOrReadOnly,)
     search_fields = ('^name',)
 
