@@ -1,5 +1,4 @@
 from django.contrib import admin
-
 from foodgram.settings import VALUE_DISPLAY
 from .models import Tag, QuantityIngredient, Ingredient, Recipe, Favorite
 
@@ -29,14 +28,16 @@ class IngredientAdmin(admin.ModelAdmin):
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
     """Отображает рецепты в панели администратора."""
-    list_display = ('author', 'name', 'cooking_time')
+    list_display = ('author', 'name', 'cooking_time', 'count_favorites')
     search_fields = ('name', 'author', 'tags')
     list_filter = ('author', 'name', 'tags')
     inlines = (IngredientInline,)
     empty_value_display = VALUE_DISPLAY
 
     def count_favorites(self, obj):
-        return obj.favorites.count()
+        return obj.favorite.count()
+
+    count_favorites.short_description = "Добавлено в избранное"
 
 
 @admin.register(Favorite)
