@@ -209,7 +209,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         )
 
     def check_recipe(self, recipe, model):
-        """Проверяет налчие рецепта."""
+        """Проверяет наличие рецепта."""
         user = self.context.get('request').user
         return not user.is_anonymous and model.objects.filter(
             user=user, recipe=recipe).exists()
@@ -226,7 +226,6 @@ class RecipeSerializer(serializers.ModelSerializer):
         """Проверяет входные данные при создании/редактировании рецепта."""
         if data['cooking_time'] < 1:
             raise ValidationError('Минимальное время приготовления - 1 минута')
-
         name = self.initial_data.get('name')
         if not name:
             raise ValidationError('Нет названия рецепта.')

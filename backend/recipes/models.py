@@ -136,7 +136,7 @@ class QuantityIngredient(models.Model):
     amount = models.IntegerField(
         verbose_name='Количество',
         validators=[MinValueValidator(
-            1, 'Минимальное количество ингридеентов - 1')],
+            1, 'Минимальное количество ингредиентов - 1')],
         default=1,
     )
 
