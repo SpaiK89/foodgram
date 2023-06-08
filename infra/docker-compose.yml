@@ -11,6 +11,7 @@ services:
     env_file: .env
     volumes:
       - pg_data_production:/var/lib/postgresql/data
+<<<<<<< HEAD
   backend:
     image: spaik89/foodgram_backend
     env_file: .env
@@ -21,6 +22,19 @@ services:
       - db
   frontend:
     image: spaik89/foodgram_frontend
+=======
+    backend:
+      image: spaik89/foodgram_backend
+      env_file: .env
+      volumes:
+        - static:/backend_static
+        - media:/app/media
+      depends_on:
+        - db
+  frontend:
+    image: spaik89/foodgram_frontend
+    #command: cp -r /app/build/. /frontend_static/
+>>>>>>> 0e04d57c313ea62c98b1a6361642b07b1dd7576d
     volumes:
       - ../frontend/:/app/result_build/
   nginx:
@@ -35,4 +49,8 @@ services:
       - media:/var/html/media/
     depends_on:
       - backend
+<<<<<<< HEAD
       - frontend
+=======
+      - frontend
+>>>>>>> 0e04d57c313ea62c98b1a6361642b07b1dd7576d

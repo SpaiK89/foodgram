@@ -102,7 +102,7 @@ class TagsViewSet(viewsets.ReadOnlyModelViewSet):
     """Работает с тегами. Теги может создавать только администратор"""
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-    permission_classes = (IsAuthorOrAdminOrReadOnly,)
+    permission_classes = (IsAdminOrReadOnly,)
     pagination_class = None
 
 
