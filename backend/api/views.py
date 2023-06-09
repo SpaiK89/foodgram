@@ -5,8 +5,8 @@ from djoser.views import UserViewSet
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework import status, viewsets
-from .filters import IngredientSearchFilter, RecipeFilterSet
+from rest_framework import status, viewsets, filters
+from .filters import RecipeFilterSet
 from .serializers import (
                         SetPasswordSerializer,
                         CustomUserSerializer,
@@ -102,7 +102,7 @@ class TagsViewSet(viewsets.ReadOnlyModelViewSet):
     """Работает с тегами. Теги может создавать только администратор"""
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-    permission_classes = (IsAdminOrReadOnly,)
+    permission_classes = (IsAuthorOrAdminOrReadOnly,)
     pagination_class = None
 
 
@@ -110,10 +110,10 @@ class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
     """Работает с ингредиентами. Ингредиенты может создавать только админ"""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    filter_backends = (DjangoFilterBackend,)
-    filterset_class = IngredientSearchFilter
-    permission_classes = (IsAdminOrReadOnly,)
+    filter_backends = (filters.SearchFilter,)
     search_fields = ('^name',)
+    permission_classes = (IsAdminOrReadOnly,)
+    pagination_class = None
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
