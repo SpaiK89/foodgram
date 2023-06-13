@@ -111,14 +111,14 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
     ],
-    "DEFAULT_PAGINATION_CLASS": "api.pagination.CustomPagination",
+    "DEFAULT_PAGINATION_CLASS": "api.pagination.PageLimitPagination",
 }
 
 DJOSER = {
     'SERIALIZERS': {
-        'user_create': 'api.serializers.CustomUserCreateSerializer',
-        'user': 'api.serializers.CustomUserSerializer',
-        'current_user': 'api.serializers.CustomUserSerializer',
+        'user_create': 'api.serializers.UserCreateSerializer',
+        'user': 'api.serializers.UserReadSerializer',
+        'current_user': 'api.serializers.UserReadSerializer',
     },
     'HIDE_USERS': False,
     'PERMISSIONS': {
@@ -133,4 +133,3 @@ DJOSER = {
 
 DATA_ROOT = os.path.join(BASE_DIR, 'data')
 
-VALUE_DISPLAY = '-пусто-'

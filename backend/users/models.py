@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models import DateTimeField
 
 
 class User(AbstractUser):
@@ -17,34 +18,11 @@ class User(AbstractUser):
         (ADMIN, 'admin'),
     ]
 
-    username = models.CharField(
-        blank=False,
-        max_length=150,
-        unique=True,
-        verbose_name='Пользователь',
-    )
-
     email = models.EmailField(
         max_length=254,
         unique=True,
         verbose_name='Email',
-    )
-
-    first_name = models.CharField(
-        blank=False,
-        max_length=150,
-        verbose_name='Имя',
-    )
-
-    last_name = models.CharField(
-        blank=False,
-        max_length=150,
-        verbose_name='Фамилия',
-    )
-
-    password = models.CharField(
-        max_length=150,
-        verbose_name='Пароль',
+        help_text='Обязательно для заполнения. '
     )
 
     role = models.CharField(
@@ -55,18 +33,8 @@ class User(AbstractUser):
     )
 
     @property
-    def is_guest(self):
-        """Проверка наличия прав неавторизованного пользователя (гостя)."""
-        return self.role == self.GUEST
-
-    @property
-    def is_authorized(self):
-        """Проверка наличия прав авторизованного пользователя."""
-        return self.role == self.AUTHORIZED
-
-    @property
     def is_admin(self):
-        """Проверка наличия прав администратора."""
+        """Проверка наличия прав администратора/суперпользователя."""
         return self.role == self.ADMIN or self.is_superuser
 
     class Meta:
@@ -92,6 +60,11 @@ class Follow(models.Model):
         related_name='following',
         verbose_name='Автор'
     )
+    date_add = DateTimeField(
+        verbose_name='Дата создания подписки',
+        auto_now_add=True,
+        editable=False
+    )
 
     class Meta:
         ordering = ('user', 'author')
@@ -103,3 +76,6 @@ class Follow(models.Model):
                 name='unique_follow'
             ),
         )
+
+    def __str__(self):
+        return f'{self.user.username} -> {self.author.username}'

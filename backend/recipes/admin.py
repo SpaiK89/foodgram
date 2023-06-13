@@ -1,18 +1,22 @@
+import os
 from django.contrib import admin
-from foodgram.settings import VALUE_DISPLAY
-from .models import Tag, QuantityIngredient, Ingredient, Recipe, Favorite
 
+from dotenv import load_dotenv
+from .models import (Tag, IngredientAmount, Ingredient, Recipe, Favorite,
+                     ShoppingCart)
+
+load_dotenv()
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
     """Отображает теги в панели администратора."""
     list_display = ('name', 'slug', 'color')
     search_fields = ('name',)
-    empty_value_display = VALUE_DISPLAY
+    empty_value_display = os.getenv('VALUE_DISPLAY', '---')
 
 
 class IngredientInline(admin.TabularInline):
-    model = QuantityIngredient
+    model = IngredientAmount
     extra = 1
 
 
@@ -22,7 +26,8 @@ class IngredientAdmin(admin.ModelAdmin):
     list_display = ('name', 'measurement_unit')
     search_fields = ('name', 'measurement_unit')
     list_filter = ('name',)
-    empty_value_display = VALUE_DISPLAY
+    save_on_top = True
+    empty_value_display = os.getenv('VALUE_DISPLAY', '---')
 
 
 @admin.register(Recipe)
@@ -32,10 +37,11 @@ class RecipeAdmin(admin.ModelAdmin):
     search_fields = ('name', 'author', 'tags')
     list_filter = ('author', 'name', 'tags')
     inlines = (IngredientInline,)
-    empty_value_display = VALUE_DISPLAY
+    empty_value_display = os.getenv('VALUE_DISPLAY', '---')
 
-    def count_favorites(self, obj):
-        return obj.favorite.count()
+    @staticmethod
+    def count_favorites(obj):
+        return obj.favorites.count()
 
     count_favorites.short_description = "Добавлено в избранное"
 
@@ -46,4 +52,19 @@ class FavoriteAdmin(admin.ModelAdmin):
     list_display = ('user', 'recipe')
     search_fields = ('user',)
     list_filter = ('user',)
-    empty_value_display = VALUE_DISPLAY
+    empty_value_display = os.getenv('VALUE_DISPLAY', '---')
+
+
+@admin.register(ShoppingCart)
+class ShoppingCartAdmin(admin.ModelAdmin):
+    """Отображает список покупок в панели администратора."""
+    list_display = ('id', 'recipe', 'user')
+    search_fields = ('user',)
+    list_filter = ('user',)
+    empty_value_display = os.getenv('VALUE_DISPLAY', '---')
+
+@admin.register(QuantityIngredient)
+class IngredientAmountAdmin(admin.ModelAdmin):
+    """Отображает количество игредиентов в рецептах в панели администратора."""
+    list_display = ('id', 'ingredient', 'recipe', 'amount')
+    search_fields = ('recipe',)
