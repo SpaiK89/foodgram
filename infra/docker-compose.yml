@@ -1,27 +1,10 @@
 version: '3.3'
-
-volumes:
-  pg_data_production:
-  static:
-  media:
-
 services:
-  db:
-    image: postgres:13.10
-    env_file: .env
-    volumes:
-      - pg_data_production:/var/lib/postgresql/data
-    backend:
-      image: spaik89/foodgram_backend
-      env_file: .env
-      volumes:
-        - static:/backend_static
-        - media:/app/media
-      depends_on:
-        - db
+
   frontend:
-    image: spaik89/foodgram_frontend
-    #command: cp -r /app/build/. /frontend_static/
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
     volumes:
       - ../frontend/:/app/result_build/
   nginx:
@@ -32,8 +15,3 @@ services:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - ../frontend/build:/usr/share/nginx/html/
       - ../docs/:/usr/share/nginx/html/api/docs/
-      - static:/var/html/static/
-      - media:/var/html/media/
-    depends_on:
-      - backend
-      - frontend
