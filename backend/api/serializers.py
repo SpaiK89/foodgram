@@ -1,10 +1,7 @@
 from django.contrib.auth.password_validation import validate_password
-from django.core import exceptions
-from django.shortcuts import get_object_or_404
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
 from rest_framework.validators import UniqueTogetherValidator
 from recipes.models import (Ingredient, IngredientAmount, Recipe, Tag,
                             Favorite, ShoppingCart)
@@ -48,7 +45,7 @@ class UserCreateSerializer(UserCreateSerializer):
 
 
 class UserReadSerializer(UserSerializer):
-    """Сериализатор пользователя."""
+    """Сериализатор для работы с пользователем."""
     is_subscribed = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -59,14 +56,15 @@ class UserReadSerializer(UserSerializer):
         )
 
     def get_is_subscribed(self, author):
-        """Проверяет, подписан ли текущий пользователь на автора."""
-        user = self.context.get('request').user
-        return user.is_authenticated and Follow.objects.filter(
-            user=user, author=author).exists()
+        if (self.context.get('request')
+                and not self.context['request'].user.is_anonymous):
+            return Follow.objects.filter(user=self.context['request'].user,
+                                         author=author).exists()
+        return False
 
 
 class SetPasswordSerializer(serializers.Serializer):
-    """Меняет пароль пользователя."""
+    """Сериализатор для изменения пароля пользователя."""
     current_password = serializers.CharField(
         error_messages={'required': 'Обязательное поле.'}
     )
@@ -74,7 +72,7 @@ class SetPasswordSerializer(serializers.Serializer):
         error_messages={'required': 'Обязательное поле.'}
     )
 
-    def validate_password(self, value):
+    def validate_new_password(self, value):
         validate_password(value)
         return value
 
@@ -99,7 +97,7 @@ class SetPasswordSerializer(serializers.Serializer):
         return validated_data
 
 class IngredientSerializer(serializers.ModelSerializer):
-    """Сериализатор ингредиентов."""
+    """Сериализатор для работы с ингредиентами."""
 
     class Meta:
         model = Ingredient
@@ -108,7 +106,7 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class TagSerializer(serializers.ModelSerializer):
-    """Сериализатор тэгов."""
+    """Сериализатор для работы с тэгами."""
 
     class Meta:
         model = Tag
@@ -117,7 +115,7 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class IngredientAmountSerializer(serializers.ModelSerializer):
-    """Сериализатор количества ингредиентов в рецепте."""
+    """Сериализатор для работы с количеством ингредиентов в рецепте."""
     id = serializers.PrimaryKeyRelatedField(
         queryset=Ingredient.objects.all(),
         source='ingredient.id'
@@ -136,7 +134,7 @@ class IngredientAmountSerializer(serializers.ModelSerializer):
 
 
 class RecipeSerializer(serializers.ModelSerializer):
-    """Сериализатор рецептов."""
+    """Сериализатор для работы с рецептами."""
     tags = TagSerializer(read_only=True, many=True)
     author = UserReadSerializer(read_only=True)
     ingredients = IngredientAmountSerializer(
@@ -155,14 +153,14 @@ class RecipeSerializer(serializers.ModelSerializer):
         )
 
 class RecipeShortSerializer(RecipeSerializer):
-    """Сериализатор для рецептов с укороченным набором полей."""
+    """Сериализатор для работы с рецептами с укороченным набором полей."""
 
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
 
 
-class FollowUserSerializer(UserReadSerializer):
+class FollowUserSerializer(serializers.ModelSerializer):
     """
     Сериализатор для работы с подписками текущего пользователя
     (подписка/отписка).
@@ -181,15 +179,12 @@ class FollowUserSerializer(UserReadSerializer):
                   'last_name', 'is_subscribed',
                   'recipes', 'recipes_count')
 
-    def validate(self, obj):
-        if (self.context.get('request') == obj):
-            raise serializers.ValidationError({'errors': 'Ошибка подписки.'})
-        return obj
 
-    def get_is_subscribed(self, obj):
+    def get_is_subscribed(self, author):
+        """Проверяет, подписан ли текущий пользователь на автора."""
         user = self.context.get('request').user
-        return (user.is_authenticated
-                and Follow.objects.filter(user=user, author=obj).exists())
+        return user.is_authenticated and Follow.objects.filter(
+            user=user, author=author).exists()
 
 
 class FollowSerializer(serializers.ModelSerializer):
@@ -208,18 +203,19 @@ class FollowSerializer(serializers.ModelSerializer):
                   'last_name', 'is_subscribed',
                   'recipes', 'recipes_count')
 
-    def get_is_subscribed(self, obj):
+    def get_is_subscribed(self, author):
+        """Проверяет, подписан ли текущий пользователь на автора."""
         user = self.context.get('request').user
-        return (user.is_authenticated
-                and Follow.objects.filter(user=user, author=obj).exists())
+        return user.is_authenticated and Follow.objects.filter(
+            user=user, author=author).exists()
 
 
     def get_recipes(self, obj):
-        request = self.context.get('request')
-        limit = request.GET.get('recipes_limit')
+        """
+        Выводит список рецептов авторов, на которых подписан текущий
+        пользователь.
+        """
         recipes = obj.recipes.all()
-        if limit:
-            recipes = recipes[:int(limit)]
         serializer = RecipeSerializer(recipes, many=True, read_only=True)
         return serializer.data
 
@@ -297,8 +293,7 @@ class RecipeCreateSerializer(RecipeSerializer):
         return instance
 
     def to_representation(self, instance):
-        return RecipeSerializer(instance,
-                                    context=self.context).data
+        return RecipeSerializer(instance, context=self.context).data
 
 
 class FavoriteSerializer(RecipeShortSerializer):

@@ -102,7 +102,6 @@ class QuerySet(models.QuerySet):
         )
 
 
-
 class Recipe(models.Model):
     """Модель рецептов."""
     author = models.ForeignKey(

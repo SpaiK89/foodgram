@@ -50,7 +50,8 @@ class UsersViewSet(mixins.CreateModelMixin,
         return UserCreateSerializer
 
     def get_permissions(self):
-        if self.action == 'retrieve':
+        if self.action in ['retrieve', 'me', 'set_password', 'subscriptions',
+                           'subscribe']:
             permission_classes = [IsAuthenticated]
         else:
             permission_classes = [AllowAny]
@@ -96,10 +97,19 @@ class UsersViewSet(mixins.CreateModelMixin,
     def subscribe(self, request, pk):
         """Подписка/отписка текущего пользователя на/от автора."""
         author = get_object_or_404(User, id=pk)
-
+        if request.user == author:
+            return Response(
+                {'errors': 'Нельзя отписываться или подписываться на себя.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         if request.method == 'POST':
-            serializer = FollowUserSerializer(
-                author, data=request.data, context={"request": request})
+            if Follow.objects.filter(user=request.user, author=author).exists():
+                return Response(
+                    {'errors': 'Вы уже подписаны на этого автора.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            serializer = FollowUserSerializer(author, data=request.data,
+                                             context={'request': request})
             serializer.is_valid(raise_exception=True)
             Follow.objects.create(user=request.user, author=author)
             return Response(serializer.data,
@@ -115,7 +125,12 @@ class UsersViewSet(mixins.CreateModelMixin,
 class TagsViewSet(mixins.ListModelMixin,
                   mixins.RetrieveModelMixin,
                   viewsets.GenericViewSet):
-    """Работает с тэгами. Теги может создавать только администратор"""
+    """
+    Работает с тэгами. Теги может создавать только администратор
+    _____
+    Для всех - вывод списка тэгов, вывод конкретного тэга
+    Для администратора?/суперюзера - создание тэгов.
+    """
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = (AdminOrReadOnly,)
@@ -124,7 +139,10 @@ class TagsViewSet(mixins.ListModelMixin,
 
 class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    Работает с ингредиентами. Ингредиенты может создавать только администратор
+    Работает с ингредиентами. Ингредиенты может создавать только администратор.
+    _____
+    Для всех - вывод списка игредиентов, вывод конкретного ингредиента
+    Для администратора?/суперюзера - создание ингредиентов.
     """
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
@@ -135,7 +153,12 @@ class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    """Работает с рецептами."""
+    """Работает с рецептами.
+    _____
+    Для всех - вывод списка рецептов, вывод конкретного рецепта.
+    Для авторизованного пользователя - создание рецепта.
+    Для автора/администратора/суперюзера - обновление/удаление рецепта.
+    """
     queryset = Recipe.objects.all()
     permission_classes = (AuthorOrAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
@@ -178,9 +201,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """Удаляет рецепт из `избранное`."""
         recipe = get_object_or_404(Recipe, pk=pk)
         Favorite.objects.filter(user=request.user, recipe=recipe).delete()
-        message = {
-            'detail': 'Вы успешно отписались от автора'
-        }
+        message = {'detail': 'Рецепт успешно удален из избранного'}
         return Response(message, status=status.HTTP_204_NO_CONTENT)
 
     @action(
@@ -189,7 +210,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         permission_classes=(AuthorOrAdminOrReadOnly,)
     )
     def shopping_cart(self, request, pk):
-        """Добавляет рецепт в `мои покупки`."""
+        """Добавляет рецепт в список покупок."""
         recipe = get_object_or_404(Recipe, pk=pk)
         data = {
             'user': request.user.pk,
@@ -206,10 +227,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """Удаляет рецепт из `мои покупки`."""
         recipe = get_object_or_404(Recipe, pk=pk)
         ShoppingCart.objects.filter(user=request.user, recipe=recipe).delete()
-        message = {
-            'detail':
-                'You have successfully removed recipe from shopping cart'
-        }
+        message = {'detail': 'Рецепт успешно удален из списка покупок'}
         return Response(message, status=status.HTTP_204_NO_CONTENT)
 
     @action(

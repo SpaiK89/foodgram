@@ -39,9 +39,8 @@ class RecipeAdmin(admin.ModelAdmin):
     inlines = (IngredientInline,)
     empty_value_display = os.getenv('VALUE_DISPLAY', '---')
 
-    @staticmethod
-    def count_favorites(obj):
-        return obj.favorites.count()
+    def count_favorites(self, obj):
+        return obj.favorite.count()
 
     count_favorites.short_description = "Добавлено в избранное"
 
