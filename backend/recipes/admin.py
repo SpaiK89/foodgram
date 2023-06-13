@@ -1,11 +1,12 @@
 import os
-from django.contrib import admin
 
+from django.contrib import admin
 from dotenv import load_dotenv
 from .models import (Tag, IngredientAmount, Ingredient, Recipe, Favorite,
                      ShoppingCart)
 
 load_dotenv()
+
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
@@ -61,6 +62,7 @@ class ShoppingCartAdmin(admin.ModelAdmin):
     search_fields = ('user',)
     list_filter = ('user',)
     empty_value_display = os.getenv('VALUE_DISPLAY', '---')
+
 
 @admin.register(IngredientAmount)
 class IngredientAmountAdmin(admin.ModelAdmin):
