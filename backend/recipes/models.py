@@ -1,6 +1,9 @@
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
+from django.db.models.functions import Length
 from users.models import User
+
+models.CharField.register_lookup(Length)
 
 
 class Ingredient(models.Model):
@@ -27,9 +30,12 @@ class Ingredient(models.Model):
             ),
             models.CheckConstraint(
                 check=models.Q(name__length__gt=0),
+                name='\n%(app_label)s_%(class)s_name - пустое значение\n',
             ),
             models.CheckConstraint(
                 check=models.Q(measurement_unit__length__gt=0),
+                name='\n%(app_label)s_%(class)s_measurement_unit - пустое'
+                     'значение\n',
             ),
         )
 
@@ -71,6 +77,30 @@ class Tag(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class QuerySet(models.QuerySet):
+    """
+    Добполнительная модель для работы со списком рецептов с
+    добавлением избранного и списка покупок.
+    """
+
+    def add_annotations(self, user_id):
+        return self.annotate(
+            is_favorited=models.Exists(
+                Favorite.objects.filter(
+                    recipe__pk=models.OuterRef('pk'),
+                    user_id=user_id,
+                )
+            ),
+            is_in_shopping_cart=models.Exists(
+                ShoppingCart.objects.filter(
+                    recipe__pk=models.OuterRef('pk'),
+                    user_id=user_id,
+                )
+            ),
+        )
+
 
 
 class Recipe(models.Model):
@@ -121,7 +151,7 @@ class Recipe(models.Model):
         verbose_name='Дата публикации'
     )
 
-    objects = RecipeQuerySet.as_manager()
+    objects = QuerySet.as_manager()
 
     class Meta:
         ordering = ('-pub_date',)
@@ -134,38 +164,12 @@ class Recipe(models.Model):
             ),
             models.CheckConstraint(
                 check=models.Q(name__length__gt=0),
+                name='\n%(app_label)s_%(class)s_name - пустое значение\n',
             ),
         )
 
     def __str__(self):
         return f'{self.name} от {self.author.username}'
-
-class RecipeQuerySet(models.QuerySet):
-    """
-    Модель для работы со списком рецептов с фильтрацией по тэгам, добавлением
-    избранного и списка покупок.
-    """
-
-    def tags_filter(self, tags):
-        if tags:
-            return self.filter(tags__slug__in=tags).distinct()
-        return self
-
-    def add_annotations(self, user_id):
-        return self.annotate(
-            is_favorited=models.Exists(
-                Favorite.objects.filter(
-                    recipe__pk=models.OuterRef('pk'),
-                    user_id=user_id,
-                )
-            ),
-            is_in_shopping_cart=models.Exists(
-                ShoppingCart.objects.filter(
-                    recipe__pk=models.OuterRef('pk'),
-                    user_id=user_id,
-                )
-            ),
-        )
 
 
 class IngredientAmount(models.Model):

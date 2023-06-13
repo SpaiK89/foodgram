@@ -98,6 +98,69 @@ class SetPasswordSerializer(serializers.Serializer):
         instance.save()
         return validated_data
 
+class IngredientSerializer(serializers.ModelSerializer):
+    """Сериализатор ингредиентов."""
+
+    class Meta:
+        model = Ingredient
+        fields = '__all__'
+        read_only_fields = '__all__',
+
+
+class TagSerializer(serializers.ModelSerializer):
+    """Сериализатор тэгов."""
+
+    class Meta:
+        model = Tag
+        fields = '__all__'
+        read_only_fields = '__all__',
+
+
+class IngredientAmountSerializer(serializers.ModelSerializer):
+    """Сериализатор количества ингредиентов в рецепте."""
+    id = serializers.PrimaryKeyRelatedField(
+        queryset=Ingredient.objects.all(),
+        source='ingredient.id'
+    )
+    name = serializers.CharField(
+        source='ingredient.name',
+        read_only=True
+    )
+    measurement_unit = serializers.CharField(
+        source='ingredient.measurement_unit',
+        read_only=True
+    )
+    class Meta:
+        model = IngredientAmount
+        fields = ('id', 'name', 'measurement_unit', 'amount')
+
+
+class RecipeSerializer(serializers.ModelSerializer):
+    """Сериализатор рецептов."""
+    tags = TagSerializer(read_only=True, many=True)
+    author = UserReadSerializer(read_only=True)
+    ingredients = IngredientAmountSerializer(
+        many=True,
+        source='ingredients_amount'
+    )
+    is_favorited = serializers.BooleanField(read_only=True)
+    is_in_shopping_cart = serializers.BooleanField(read_only=True)
+    image = Base64ImageField(required=False, allow_null=True)
+
+    class Meta:
+        model = Recipe
+        fields = (
+            'id', 'tags', 'author', 'ingredients', 'is_favorited',
+            'is_in_shopping_cart', 'name', 'image', 'text', 'cooking_time'
+        )
+
+class RecipeShortSerializer(RecipeSerializer):
+    """Сериализатор для рецептов с укороченным набором полей."""
+
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time')
+
 
 class FollowUserSerializer(UserReadSerializer):
     """
@@ -161,61 +224,6 @@ class FollowSerializer(serializers.ModelSerializer):
         return serializer.data
 
 
-class IngredientSerializer(serializers.ModelSerializer):
-    """Сериализатор ингредиентов."""
-
-    class Meta:
-        model = Ingredient
-        fields = '__all__'
-        read_only_fields = '__all__',
-
-
-class TagSerializer(serializers.ModelSerializer):
-    """Сериализатор тэгов."""
-
-    class Meta:
-        model = Tag
-        fields = '__all__'
-        read_only_fields = '__all__',
-
-
-class IngredientAmountSerializer(serializers.ModelSerializer):
-    """Сериализатор количества ингредиентов в рецепте."""
-    id = serializers.ReadOnlyField(source='ingredient.id')
-    name = serializers.ReadOnlyField(source='ingredient.name')
-    measurement_unit = serializers.ReadOnlyField(
-        source='ingredient.measurement_unit')
-
-    class Meta:
-        model = IngredientAmount
-        fields = ('id', 'name', 'measurement_unit', 'amount')
-
-class RecipeShortSerializer(RecipeSerializer):
-    """Сериализатор для рецептов с укороченным набором полей."""
-
-    class Meta:
-        model = Recipe
-        fields = ('id', 'name', 'image', 'cooking_time')
-
-class RecipeSerializer(serializers.ModelSerializer):
-    """Сериализатор рецептов."""
-    tags = TagSerializer(read_only=True, many=True)
-    author = UserReadSerializer(read_only=True)
-    ingredients = IngredientAmountSerializer(
-        many=True,
-        source='ingredients_amount'
-    )
-    is_favorited = serializers.BooleanField(read_only=True)
-    is_in_shopping_cart = serializers.BooleanField(read_only=True)
-    image = Base64ImageField(required=False, allow_null=True)
-
-    class Meta:
-        model = Recipe
-        fields = (
-            'id', 'tags', 'author', 'ingredients', 'is_favorited',
-            'is_in_shopping_cart', 'name', 'image', 'text', 'cooking_time'
-        )
-
 
 class RecipeCreateSerializer(RecipeSerializer):
     """Сериализатор для создания/обновления/удаления рецептов."""
@@ -246,28 +254,21 @@ class RecipeCreateSerializer(RecipeSerializer):
             )
         IngredientAmount.objects.bulk_create(ingredients_list)
 
+
     def validate(self, data):
-        for field in ['name', 'text', 'cooking_time']:
-            if not data.get(field):
-                raise serializers.ValidationError(
-                    f'{field} - Обязательное поле.'
+        ingredients_list = []
+        ingredients_amount = data.get('ingredients_amount')
+        if not ingredients_amount:
+            raise serializers.ValidationError(
+                    'Нужно указать минимум 1 ингредиент.'
                 )
-        if not data.get('tags'):
+        for ingredient in ingredients_amount:
+            ingredients_list.append(ingredient['ingredient']['id'])
+        if len(ingredients_list) > len(set(ingredients_list)):
             raise serializers.ValidationError(
-                'Нужно указать минимум 1 тэг.'
-            )
-        if not data.get('ingredients'):
-            raise serializers.ValidationError(
-                'Нужно указать минимум 1 ингредиент.'
-            )
-        inrgedient_id_list = [item['id'] for item in data.get('ingredients')]
-        unique_ingredient_id_list = set(inrgedient_id_list)
-        if len(inrgedient_id_list) != len(unique_ingredient_id_list):
-            raise serializers.ValidationError(
-                'Ингредиенты не должны повторяться.'
+                {'error': 'Ингредиенты не должны повторяться.'}
             )
         return data
-
 
     def create(self, validated_data):
         author = self.context.get('request').user
@@ -294,6 +295,10 @@ class RecipeCreateSerializer(RecipeSerializer):
         self.save_ingredients(instance, ingredients)
         instance.save()
         return instance
+
+    def to_representation(self, instance):
+        return RecipeSerializer(instance,
+                                    context=self.context).data
 
 
 class FavoriteSerializer(RecipeShortSerializer):

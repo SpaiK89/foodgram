@@ -40,6 +40,8 @@ class UsersViewSet(mixins.CreateModelMixin,
     вывод информации о себе, подписка на автора рецепта.
     """
 
+    queryset = User.objects.all()
+
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve', 'me'):
             return UserReadSerializer
@@ -137,9 +139,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     permission_classes = (AuthorOrAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
+    filter_class = RecipeFilterSet
     filterset_class = RecipeFilterSet
     serializer_class = RecipeSerializer
-    http_method_names = ['GET', 'POST', 'PATCH', 'CREATE', 'DELETE']
 
     def get_serializer_class(self):
         if self.action in ('favorite', 'shopping_cart'):

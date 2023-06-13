@@ -63,7 +63,7 @@ class ShoppingCartAdmin(admin.ModelAdmin):
     list_filter = ('user',)
     empty_value_display = os.getenv('VALUE_DISPLAY', '---')
 
-@admin.register(QuantityIngredient)
+@admin.register(IngredientAmount)
 class IngredientAmountAdmin(admin.ModelAdmin):
     """Отображает количество игредиентов в рецептах в панели администратора."""
     list_display = ('id', 'ingredient', 'recipe', 'amount')
