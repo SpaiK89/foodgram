@@ -89,7 +89,7 @@ class UsersViewSet(mixins.CreateModelMixin,
         queryset = User.objects.filter(following__user=request.user)
         page = self.paginate_queryset(queryset)
         serializer = FollowSerializer(page, many=True,
-                                             context={'request': request})
+                                      context={'request': request})
         return self.get_paginated_response(serializer.data)
 
     @action(detail=True, methods=['POST', 'DELETE'],
@@ -103,23 +103,22 @@ class UsersViewSet(mixins.CreateModelMixin,
                 status=status.HTTP_400_BAD_REQUEST
             )
         if request.method == 'POST':
-            if Follow.objects.filter(user=request.user, author=author).exists():
+            if Follow.objects.filter(
+                    user=request.user, author=author).exists():
                 return Response(
                     {'errors': 'Вы уже подписаны на этого автора.'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
             serializer = FollowUserSerializer(author, data=request.data,
-                                             context={'request': request})
+                                              context={'request': request})
             serializer.is_valid(raise_exception=True)
             Follow.objects.create(user=request.user, author=author)
             return Response(serializer.data,
                             status=status.HTTP_201_CREATED)
-
-        if request.method == 'DELETE':
-            get_object_or_404(Follow, user=request.user,
-                              author=author).delete()
-            return Response({'detail': 'Успешная отписка'},
-                            status=status.HTTP_204_NO_CONTENT)
+        get_object_or_404(Follow, user=request.user,
+                          author=author).delete()
+        return Response({'detail': 'Успешная отписка'},
+                        status=status.HTTP_204_NO_CONTENT)
 
 
 class TagsViewSet(mixins.ListModelMixin,
@@ -257,6 +256,3 @@ class RecipeViewSet(viewsets.ModelViewSet):
         request = HttpResponse(content, content_type='text/plain')
         request['Content-Disposition'] = f'attachment; filename={filename}'
         return request
-
-
-

@@ -27,7 +27,7 @@ class UserCreateSerializer(UserCreateSerializer):
         first_name = data.get('first_name')
         last_name = data.get('last_name')
         forbidden_usernames = ['me', 'Me', 'ME', 'set_password',
-                             'subscriptions', 'subscribe']
+                               'subscriptions', 'subscribe']
         if self.initial_data.get('username') in forbidden_usernames:
             raise serializers.ValidationError(
                 {'username': f'Вы не можете использовать {username}'
@@ -96,6 +96,7 @@ class SetPasswordSerializer(serializers.Serializer):
         instance.save()
         return validated_data
 
+
 class IngredientSerializer(serializers.ModelSerializer):
     """Сериализатор для работы с ингредиентами."""
 
@@ -128,6 +129,7 @@ class IngredientAmountSerializer(serializers.ModelSerializer):
         source='ingredient.measurement_unit',
         read_only=True
     )
+
     class Meta:
         model = IngredientAmount
         fields = ('id', 'name', 'measurement_unit', 'amount')
@@ -151,6 +153,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             'id', 'tags', 'author', 'ingredients', 'is_favorited',
             'is_in_shopping_cart', 'name', 'image', 'text', 'cooking_time'
         )
+
 
 class RecipeShortSerializer(RecipeSerializer):
     """Сериализатор для работы с рецептами с укороченным набором полей."""
@@ -178,7 +181,6 @@ class FollowUserSerializer(serializers.ModelSerializer):
                   'username', 'first_name',
                   'last_name', 'is_subscribed',
                   'recipes', 'recipes_count')
-
 
     def get_is_subscribed(self, author):
         """Проверяет, подписан ли текущий пользователь на автора."""
@@ -209,7 +211,6 @@ class FollowSerializer(serializers.ModelSerializer):
         return user.is_authenticated and Follow.objects.filter(
             user=user, author=author).exists()
 
-
     def get_recipes(self, obj):
         """
         Выводит список рецептов авторов, на которых подписан текущий
@@ -218,7 +219,6 @@ class FollowSerializer(serializers.ModelSerializer):
         recipes = obj.recipes.all()
         serializer = RecipeSerializer(recipes, many=True, read_only=True)
         return serializer.data
-
 
 
 class RecipeCreateSerializer(RecipeSerializer):
@@ -249,7 +249,6 @@ class RecipeCreateSerializer(RecipeSerializer):
                 )
             )
         IngredientAmount.objects.bulk_create(ingredients_list)
-
 
     def validate(self, data):
         ingredients_list = []
@@ -340,4 +339,3 @@ class ShoppingCartSerializer(RecipeShortSerializer):
                 message='Рецепт уже был добавлен в список покупок'
             )
         ]
-

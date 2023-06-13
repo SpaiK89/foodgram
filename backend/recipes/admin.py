@@ -7,6 +7,7 @@ from .models import (Tag, IngredientAmount, Ingredient, Recipe, Favorite,
 
 load_dotenv()
 
+
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
     """Отображает теги в панели администратора."""
@@ -61,6 +62,7 @@ class ShoppingCartAdmin(admin.ModelAdmin):
     search_fields = ('user',)
     list_filter = ('user',)
     empty_value_display = os.getenv('VALUE_DISPLAY', '---')
+
 
 @admin.register(IngredientAmount)
 class IngredientAmountAdmin(admin.ModelAdmin):
