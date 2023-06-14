@@ -2,10 +2,12 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import F, Sum
+
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import status, viewsets, mixins
+
 from .filters import IngredientFilter, RecipeFilterSet
 from .serializers import (
                         SetPasswordSerializer,
@@ -21,8 +23,8 @@ from .serializers import (
                         FavoriteSerializer,
                         ShoppingCartSerializer
 )
-from users.models import Follow, User
 from .permissions import AuthorOrAdminOrReadOnly, AdminOrReadOnly
+from users.models import Follow, User
 from recipes.models import (Tag, Ingredient, Recipe, IngredientAmount,
                             Favorite, ShoppingCart)
 
@@ -73,14 +75,10 @@ class UsersViewSet(mixins.CreateModelMixin,
         user = request.user
         data = request.data
         serializer = self.get_serializer(user, data=data)
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-        return Response(
-            {
-                'detail': 'Пароль успешно изменен'
-            },
-            status=status.HTTP_204_NO_CONTENT
-        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({'detail': 'Пароль успешно изменен'},
+                        status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['GET'],
             permission_classes=(IsAuthenticated,))
@@ -97,20 +95,10 @@ class UsersViewSet(mixins.CreateModelMixin,
     def subscribe(self, request, pk):
         """Подписка/отписка текущего пользователя на/от автора."""
         author = get_object_or_404(User, id=pk)
-        if request.user == author:
-            return Response(
-                {'errors': 'Нельзя отписываться или подписываться на себя.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
         if request.method == 'POST':
-            if Follow.objects.filter(
-                    user=request.user, author=author).exists():
-                return Response(
-                    {'errors': 'Вы уже подписаны на этого автора.'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
             serializer = FollowUserSerializer(author, data=request.data,
-                                              context={'request': request})
+                                              context={'request': request,
+                                                       'author': author})
             serializer.is_valid(raise_exception=True)
             Follow.objects.create(user=request.user, author=author)
             return Response(serializer.data,
