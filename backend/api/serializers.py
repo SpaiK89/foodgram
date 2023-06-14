@@ -8,7 +8,7 @@ from rest_framework.validators import UniqueTogetherValidator
 
 from recipes.models import (Ingredient, IngredientAmount, Recipe, Tag,
                             Favorite, ShoppingCart)
-from users.models import User, Follow
+from users.models import User
 from api.params import (MIN_COOKING_TIME,
                         MAX_COOKING_TIME,
                         MIN_AMOUNT_INGREDIENTS,
@@ -214,8 +214,8 @@ class FollowUserSerializer(serializers.ModelSerializer):
     def get_is_subscribed(self, author):
         """Проверяет, подписан ли текущий пользователь на автора."""
         user = self.context.get('request').user
-        return (user.is_authenticated and
-                user.follower.filter(author=author).exists())
+        return (user.is_authenticated
+                and user.follower.filter(author=author).exists())
 
 
 class FollowSerializer(serializers.ModelSerializer):
@@ -237,8 +237,8 @@ class FollowSerializer(serializers.ModelSerializer):
     def get_is_subscribed(self, author):
         """Проверяет, подписан ли текущий пользователь на автора."""
         user = self.context.get('request').user
-        return (user.is_authenticated and
-                user.follower.filter(author=author).exists())
+        return (user.is_authenticated
+                and user.follower.filter(author=author).exists())
 
     def get_recipes(self, obj):
         """
