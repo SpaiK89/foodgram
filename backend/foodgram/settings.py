@@ -133,4 +133,3 @@ DJOSER = {
 }
 
 DATA_ROOT = os.path.join(BASE_DIR, 'data')
-
