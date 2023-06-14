@@ -1,9 +1,11 @@
 import os
+
 from django.contrib import admin
 
 from dotenv import load_dotenv
 from .models import (Tag, IngredientAmount, Ingredient, Recipe, Favorite,
                      ShoppingCart)
+from api.params import MIN_AMOUNT_INGREDIENTS, MAX_AMOUNT_INGREDIENTS
 
 load_dotenv()
 
@@ -18,7 +20,9 @@ class TagAdmin(admin.ModelAdmin):
 
 class IngredientInline(admin.TabularInline):
     model = IngredientAmount
-    extra = 1
+    extra = 0
+    min_num = MIN_AMOUNT_INGREDIENTS
+    max_num = MAX_AMOUNT_INGREDIENTS
 
 
 @admin.register(Ingredient)
