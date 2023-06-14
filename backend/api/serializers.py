@@ -1,11 +1,18 @@
 from django.contrib.auth.password_validation import validate_password
+from django.core.validators import MinValueValidator, MaxValueValidator
+
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
+
 from recipes.models import (Ingredient, IngredientAmount, Recipe, Tag,
                             Favorite, ShoppingCart)
 from users.models import User, Follow
+from api.params import (MIN_COOKING_TIME,
+                        MAX_COOKING_TIME,
+                        MIN_AMOUNT_INGREDIENTS,
+                        MAX_AMOUNT_INGREDIENTS)
 
 
 class UserCreateSerializer(UserCreateSerializer):
@@ -56,10 +63,10 @@ class UserReadSerializer(UserSerializer):
         )
 
     def get_is_subscribed(self, author):
-        if (self.context.get('request')
-                and not self.context['request'].user.is_anonymous):
-            return Follow.objects.filter(user=self.context['request'].user,
-                                         author=author).exists()
+        """Проверяет, подписан ли текущий пользователь на автора."""
+        request = self.context.get('request')
+        if request and not request.user.is_anonymous:
+            return request.user.follower.filter(author=author).exists()
         return False
 
 
@@ -129,6 +136,15 @@ class IngredientAmountSerializer(serializers.ModelSerializer):
         source='ingredient.measurement_unit',
         read_only=True
     )
+    amount = serializers.IntegerField(validators=[
+            MinValueValidator(MIN_AMOUNT_INGREDIENTS,
+                              'Минимальное количество ингредиентов - '
+                              f'{MIN_AMOUNT_INGREDIENTS} ед.'),
+            MaxValueValidator(MAX_AMOUNT_INGREDIENTS,
+                              'Максимальное количество ингредиентов - '
+                              f'{MAX_AMOUNT_INGREDIENTS} ед.'),
+            ]
+    )
 
     class Meta:
         model = IngredientAmount
@@ -174,19 +190,33 @@ class FollowUserSerializer(serializers.ModelSerializer):
     recipes = RecipeShortSerializer(many=True, read_only=True)
     recipes_count = serializers.IntegerField(source='recipes.count',
                                              read_only=True)
+    author = serializers.ReadOnlyField()
 
     class Meta:
         model = User
         fields = ('email', 'id',
                   'username', 'first_name',
                   'last_name', 'is_subscribed',
-                  'recipes', 'recipes_count')
+                  'recipes', 'recipes_count', 'author')
+
+    def validate(self, data):
+        user = self.context['request'].user
+        author = self.context['author']
+        if user == author:
+            raise serializers.ValidationError(
+                {'error': 'Нельзя отписываться или подписываться на себя.'}
+            )
+        if user.follower.filter(author=author).exists():
+            raise serializers.ValidationError(
+                {'error': 'Вы уже подписаны на этого автора.'},
+            )
+        return data
 
     def get_is_subscribed(self, author):
         """Проверяет, подписан ли текущий пользователь на автора."""
         user = self.context.get('request').user
-        return user.is_authenticated and Follow.objects.filter(
-            user=user, author=author).exists()
+        return (user.is_authenticated and
+                user.follower.filter(author=author).exists())
 
 
 class FollowSerializer(serializers.ModelSerializer):
@@ -208,8 +238,8 @@ class FollowSerializer(serializers.ModelSerializer):
     def get_is_subscribed(self, author):
         """Проверяет, подписан ли текущий пользователь на автора."""
         user = self.context.get('request').user
-        return user.is_authenticated and Follow.objects.filter(
-            user=user, author=author).exists()
+        return (user.is_authenticated and
+                user.follower.filter(author=author).exists())
 
     def get_recipes(self, obj):
         """
@@ -226,6 +256,15 @@ class RecipeCreateSerializer(RecipeSerializer):
     tags = serializers.PrimaryKeyRelatedField(
         many=True,
         queryset=Tag.objects.all()
+    )
+    cooking_time = serializers.IntegerField(validators=[
+        MinValueValidator(MIN_COOKING_TIME,
+                          'Минимальное время приготовления - '
+                          f'{MIN_COOKING_TIME} минута'),
+        MaxValueValidator(MAX_COOKING_TIME,
+                          'Максимальное время приготовления - '
+                          f'{MAX_COOKING_TIME} минуты'),
+        ]
     )
 
     class Meta:
