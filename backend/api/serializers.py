@@ -190,14 +190,13 @@ class FollowUserSerializer(serializers.ModelSerializer):
     recipes = RecipeShortSerializer(many=True, read_only=True)
     recipes_count = serializers.IntegerField(source='recipes.count',
                                              read_only=True)
-    author = serializers.ReadOnlyField()
 
     class Meta:
         model = User
         fields = ('email', 'id',
                   'username', 'first_name',
                   'last_name', 'is_subscribed',
-                  'recipes', 'recipes_count', 'author')
+                  'recipes', 'recipes_count')
 
     def validate(self, data):
         user = self.context['request'].user
