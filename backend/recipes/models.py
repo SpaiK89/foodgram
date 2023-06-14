@@ -1,7 +1,14 @@
-from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from django.db.models.functions import Length
+from django.core.validators import (MinValueValidator,
+                                    RegexValidator,
+                                    MaxValueValidator)
+
 from users.models import User
+from api.params import (MIN_COOKING_TIME,
+                        MAX_COOKING_TIME,
+                        MIN_AMOUNT_INGREDIENTS,
+                        MAX_AMOUNT_INGREDIENTS)
 
 models.CharField.register_lookup(Length)
 
@@ -81,7 +88,7 @@ class Tag(models.Model):
 
 class QuerySet(models.QuerySet):
     """
-    Добполнительная модель для работы со списком рецептов с
+    Дополнительная модель для работы со списком рецептов с
     добавлением избранного и списка покупок.
     """
 
@@ -142,8 +149,16 @@ class Recipe(models.Model):
     cooking_time = models.PositiveSmallIntegerField(
         verbose_name='Время приготовления',
         help_text='Время приготовления в минутах',
-        validators=[MinValueValidator(
-            1, 'Минимальное время приготовления - 1 минута')],
+        validators=[
+            MinValueValidator(
+                MIN_COOKING_TIME,
+                'Минимальное время приготовления - '
+                f'{MIN_COOKING_TIME} минута'),
+            MaxValueValidator(
+                MAX_COOKING_TIME,
+                'Максимальное время приготовления - '
+                f'{MAX_COOKING_TIME} минуты'),
+        ],
     )
     pub_date = models.DateTimeField(
         auto_now_add=True,
@@ -186,11 +201,19 @@ class IngredientAmount(models.Model):
         related_name='ingredients_amount',
         verbose_name='Рецепт'
     )
-    amount = models.IntegerField(
+    amount = models.PositiveSmallIntegerField(
         verbose_name='Количество',
-        validators=[MinValueValidator(
-            1, 'Минимальное количество ингредиентов - 1 ед.')],
-        default=1,
+        default=MIN_AMOUNT_INGREDIENTS,
+        validators=[
+            MinValueValidator(
+                MIN_AMOUNT_INGREDIENTS,
+                'Минимальное количество ингредиентов - '
+                f'{MIN_AMOUNT_INGREDIENTS} ед.'),
+            MaxValueValidator(
+                MAX_AMOUNT_INGREDIENTS,
+                'Максимальное количество ингредиентов - '
+                f'{MAX_AMOUNT_INGREDIENTS} ед.'),
+        ],
     )
 
     class Meta:
