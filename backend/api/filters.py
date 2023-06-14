@@ -1,4 +1,5 @@
 from django_filters import FilterSet, filters
+
 from rest_framework.filters import SearchFilter
 
 from users.models import User
@@ -35,7 +36,7 @@ class RecipeFilterSet(FilterSet):
                 favorite__user=self.request.user,
                 is_favorited=True,
             )
-        return Recipe.objects.all()
+        return queryset
 
     def get_is_in_shopping_cart(self, queryset, name, value):
         if value and self.request.user.is_authenticated:
@@ -43,4 +44,4 @@ class RecipeFilterSet(FilterSet):
                 shopping_cart__user=self.request.user,
                 is_in_shopping_cart=True,
             )
-        return Recipe.objects.all()
+        return queryset
