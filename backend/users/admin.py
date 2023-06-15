@@ -1,5 +1,4 @@
 import os
-
 from django.contrib import admin
 
 from dotenv import load_dotenv
